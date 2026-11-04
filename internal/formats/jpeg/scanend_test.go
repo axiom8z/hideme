@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/axiom8z/hideme/internal/core"
+	"github.com/axiom8z/hideme/internal/coretest"
 	"github.com/axiom8z/hideme/internal/jpegmeta"
 )
 
@@ -170,6 +171,7 @@ func TestScanThatEndsEarlyIsNotCut(t *testing.T) {
 // many scans repeat it. Each scan's end-of-band runs cover millions of blocks with a
 // few bytes.
 func TestScanWalkIsBounded(t *testing.T) {
+	coretest.SkipIfRace(t)
 	out := []byte{0xFF, jpegmeta.MarkerSOI}
 	dqt := append([]byte{0}, bytes.Repeat([]byte{4}, 64)...)
 	out = append(out, segment(jpegmeta.MarkerDQT, dqt)...)

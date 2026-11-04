@@ -480,6 +480,7 @@ func TestIPTCFindingsAreCapped(t *testing.T) {
 // Nothing here fails if the walk is linear; if it is not, the test takes minutes
 // and trips the limit.
 func TestPaddingDoesNotMakeThePhotoshopWalkQuadratic(t *testing.T) {
+	coretest.SkipIfRace(t)
 	base := noisyJPEG(t)
 	const chunk = 60000
 	joined := append(bytes.Repeat(resource(0x03ED, nil), 400000), make([]byte, 32<<20)...)

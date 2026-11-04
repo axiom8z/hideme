@@ -413,6 +413,7 @@ func TestUnparseableIsRefused(t *testing.T) {
 // Nothing here fails if the walk is linear; if it is not, the test takes minutes
 // and trips the limit.
 func TestUnterminatedXMPDoesNotMakeTheWalkQuadratic(t *testing.T) {
+	coretest.SkipIfRace(t)
 	base := animation(t)
 	block := []byte{introExtension, labelApplication, applicationID}
 	block = append(append(block, "XMP DataXMP"...), 0)

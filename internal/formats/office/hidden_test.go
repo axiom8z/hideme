@@ -11,6 +11,7 @@ import (
 	"unicode/utf16"
 
 	"github.com/axiom8z/hideme/internal/core"
+	"github.com/axiom8z/hideme/internal/coretest"
 )
 
 const (
@@ -307,6 +308,7 @@ func bytesAllocated(f func()) int {
 // double its way up allocates three, and each editing pass that keeps its output one
 // more.
 func TestInspectHoldsOneCopyOfAPart(t *testing.T) {
+	coretest.SkipIfRace(t)
 	const size = 16 << 20
 	data := zipOf(t, hugeRepeat(size)...)
 	got := bytesAllocated(func() {
@@ -320,6 +322,7 @@ func TestInspectHoldsOneCopyOfAPart(t *testing.T) {
 }
 
 func TestCleanHoldsTwoCopiesOfAPart(t *testing.T) {
+	coretest.SkipIfRace(t)
 	const size = 16 << 20
 	data := zipOf(t, hugeRepeat(size)...)
 	got := bytesAllocated(func() {
@@ -382,6 +385,7 @@ func TestWideTextDecodesLikeTheStandardLibrary(t *testing.T) {
 // Refusing has to be cheap too. Reading past what is reserved would make the buffer
 // double just before the limit stopped it, which is the most memory it could ever use.
 func TestRefusalHoldsNoMoreThanTheLimit(t *testing.T) {
+	coretest.SkipIfRace(t)
 	data := zipOf(t, hugeRepeat(40<<20)...)
 	got := bytesAllocated(func() {
 		if _, err := ooxml.Inspect(context.Background(), core.BytesSource(data), core.Options{}); !errors.Is(err, core.ErrTooLarge) {

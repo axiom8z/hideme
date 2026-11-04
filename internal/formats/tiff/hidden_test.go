@@ -215,6 +215,7 @@ func TestUncompressedYCbCrStripsAreChecked(t *testing.T) {
 // for each strip made a file with a thousand samples a thousand times slower. Without
 // the sum being kept, this runs into the timeout.
 func TestManySamplesDoNotSlowEveryStrip(t *testing.T) {
+	coretest.SkipIfRace(t)
 	const strips, samples = 1 << 22, maxSamples
 	root := &coretest.IFD{Entries: []coretest.Entry{
 		{Tag: tagImageWidth, Value: uint32(1)},

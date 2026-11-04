@@ -19,10 +19,11 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
+          cache: false
       - name: Check formatting
         if: runner.os == 'Linux'
         run: test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
@@ -34,20 +35,22 @@ jobs:
     name: race detector
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
+          cache: false
       - run: go test -race -count=1 ./...
 
   no-dependencies:
     name: standard library only
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
+          cache: false
       - name: Fail if any third-party module is required
         run: test -z "$(go list -m all | tail -n +2)"
 
@@ -57,10 +60,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
+          cache: false
       - name: Run every fuzz target
         run: |
           status=0
@@ -86,10 +90,11 @@ jobs:
           - { goos: darwin, goarch: amd64, ext: "" }
           - { goos: darwin, goarch: arm64, ext: "" }
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
+          cache: false
       - name: Build
         env:
           GOOS: ${{ matrix.target.goos }}
@@ -98,7 +103,7 @@ jobs:
         # -trimpath keeps the build machine's paths out of the binary, which is
         # the least a metadata remover can do.
         run: go build -trimpath -ldflags="-s -w" -o "dist/hideme-${{ matrix.target.goos }}-${{ matrix.target.goarch }}${{ matrix.target.ext }}" ./cmd/hideme
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: hideme-${{ matrix.target.goos }}-${{ matrix.target.goarch }}
           path: dist/*

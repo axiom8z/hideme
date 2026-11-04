@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/axiom8z/hideme/internal/core"
+	"github.com/axiom8z/hideme/internal/coretest"
 )
 
 const planted = "Test Author, 1 Secret Road"
@@ -335,6 +336,7 @@ func TestStylesheetInstructions(t *testing.T) {
 
 // Hostile shapes: these must finish quickly however long the file is.
 func TestScanTimeStaysLinear(t *testing.T) {
+	coretest.SkipIfRace(t)
 	var manyAttrs strings.Builder
 	manyAttrs.WriteString(`<svg xmlns="http://www.w3.org/2000/svg" `)
 	for i := range 200000 {

@@ -281,6 +281,7 @@ func TestInlineImagesWarn(t *testing.T) {
 // A tiny stream of unterminated candidates must not make each one read to the end
 // of its window, which would be quadratic in anything but name.
 func TestInlineScanIsBounded(t *testing.T) {
+	coretest.SkipIfRace(t)
 	data := contentDoc("/Filter /FlateDecode", compress(bytes.Repeat([]byte("BI /A("), 16<<20)))
 	done := make(chan struct{})
 	go func() {

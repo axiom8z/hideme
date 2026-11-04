@@ -131,6 +131,8 @@ These limits are stated so that nobody relies on HideMe for something it cannot 
 
 The tests need only the Go toolchain: over 1,000 test functions and 22 native fuzz targets. The
 format handlers' targets assert that if a file cleans, the output has nothing left to report.
+[CI](.github/workflows/ci.yml) runs the tests on Linux, macOS and Windows, and under the race
+detector on Linux, where tests that measure time or memory are skipped because it distorts both.
 
 Beyond those, the results were checked against software HideMe did not write:
 
@@ -172,9 +174,8 @@ Beyond those, the results were checked against software HideMe did not write:
 - **Microsoft Office.** Documents were checked with LibreOffice, ONLYOFFICE and libraries, which may
   be more forgiving, so a repair prompt in Word, Excel or PowerPoint is still possible. No file
   written by Microsoft Office has been opened after cleaning either.
-- **Linux and macOS.** The code compiles and passes `go vet` for both, but so far its tests have
-  only been run on Windows, without the race detector. [CI](.github/workflows/ci.yml) is set up to
-  run them.
+- **Real files on Linux and macOS.** The test suite runs on both, but the checks against real files
+  and other programs above were only run on Windows.
 - **Symbolic links, FAT drives, cloud placeholder files and a full disk.** Junctions were tested on
   NTFS, but those were not.
 
