@@ -62,14 +62,18 @@ $ hideme inspect --json photo.jpg          # one JSON document, for scripts
 
 ## How it stays trustworthy
 
-The design rule is that **HideMe would rather refuse a file than wrongly call it clean.**
+The design rule is that **HideMe would rather refuse an output that fails its checks than call it
+clean.** Some things stay in an output with a warning instead, so read the warnings.
 
 - **Allowlists, not denylists.** Wherever a format allows it, HideMe keeps only what it knows a
   decoder needs, so metadata types invented later are removed too.
 - **Verification before the output exists.** Each output is written to a temporary file, then
   checked: its format must be unchanged, reading it back must find no metadata, and a search of
   its raw bytes, independent of any parser, must find no metadata signatures. Only then does it
-  get its name. If a check fails, the output is discarded.
+  get its name. If a check fails, the output is discarded. There are exceptions: in an SVG, whose
+  visible text can legitimately contain a signature, a raw-byte hit only warns, and parts HideMe
+  cannot read, such as embedded files no handler recognises and PDF streams in filters it does not
+  decode, stay in the output with a warning.
 - **Originals are safe.** Nothing is overwritten without `--in-place`, and that replaces the file
   atomically. `--in-place` also refuses a file whose cleaned copy might lack content, such as a
   motion photo losing its video, unless you add `--force`.
@@ -108,6 +112,9 @@ A 255 MB MP4 peaked at 53 MB of paged memory, so memory barely grows with file s
 that stream. Formats that must be held in memory need more: a million-row spreadsheet took about
 1 GB, the worst case measured was about 2 GB, and each parallel job adds its own.
 
+These were measured by hand on that one machine. The repository has no script or saved log for
+them, so they cannot be reproduced from here.
+
 ## What it does not do
 
 These limits are stated so that nobody relies on HideMe for something it cannot do.
@@ -134,15 +141,19 @@ format handlers' targets assert that if a file cleans, the output has nothing le
 [CI](.github/workflows/ci.yml) runs the tests on Linux, macOS and Windows, and under the race
 detector on Linux, where tests that measure time or memory are skipped because it distorts both.
 
-Beyond those, the results were checked against software HideMe did not write:
+Beyond those, the results were checked against software HideMe did not write. These checks were run
+locally, on Windows. Apart from the sweep's results in [docs/SWEEP.md](docs/SWEEP.md), their logs
+are not in this repository, so the numbers below cannot be confirmed from it:
 
 - **Independent readers.** Cleaned files were read back with Pillow, libheif, ffmpeg, pypdf,
   pikepdf, python-docx, openpyxl, python-pptx, odfpy, mutagen and hachoir, comparing decoded pixels
   and audio and video hashes against the originals.
-- **ExifTool 13.60 as a writer.** ExifTool wrote a marker into each text tag it would accept, 60,672
-  in all, across 32 JPEG, PNG, WebP, GIF, TIFF, HEIC, MP4, MOV, M4A and PDF files, and GPS
-  coordinates into 27 of them. After cleaning, none were in ExifTool's reading of the output, and
-  no marker was in its raw bytes.
+- **ExifTool 13.60 as a writer.** ExifTool wrote a marker into each text tag it would accept, in
+  batches, across 32 JPEG, PNG, WebP, GIF, TIFF, HEIC, MP4, MOV, M4A and PDF files, and GPS
+  coordinates into 27 of them. No marker was in ExifTool's reading of any cleaned output, or in its
+  raw bytes. The script's total was 60,672, but that adds up tag names per batch across the files,
+  so it is not 60,672 different tags. It also counts tags in any batch HideMe refused, and with no
+  saved log, nothing here shows how many batches went through a clean.
 - **ExifTool as a reader.** HideMe cleaned 58 of ExifTool's own test files, 29 of them with maker
   notes from at least 18 camera makers, and ExifTool's reading of each output was checked for what
   survived. HideMe refused the rest of its 194, because they were formats it does not support or
@@ -150,7 +161,7 @@ Beyond those, the results were checked against software HideMe did not write:
 - **A real iPhone photo and video.** ExifTool found no EXIF, XMP, maker notes or user tags left. The
   photo decoded to identical pixels, every video and audio sample was byte-identical, and all five
   of the video's metadata tracks were zeroed. Neither file held a location, so GPS was planted in
-  copies with ExifTool, and that was removed too.
+  copies with ExifTool, and that was removed too. The two files are not in this repository.
 - **LibreOffice 26.8.** 12 cleaned DOCX, XLSX, PPTX, ODT, ODS and ODP files, 6 of them written by
   LibreOffice itself, each opened, exported to PDF with the original's page count and text, and
   saved back to their own format.
