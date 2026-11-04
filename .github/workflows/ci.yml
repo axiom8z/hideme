@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "23 4 * * 1" # weekly, so fuzzing keeps running while the code is quiet
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Check formatting
+        if: runner.os == 'Linux'
+        run: test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
+      - run: go vet ./...
+      - run: go build ./...
+      - run: go test -count=1 ./...
+
+  race:
+    name: race detector
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: go test -race -count=1 ./...
+
+  no-dependencies:
+    name: standard library only
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Fail if any third-party module is required
+        run: test -z "$(go list -m all | tail -n +2)"
+
+  fuzz:
+    name: fuzz
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Run every fuzz target
+        run: |
+          status=0
+          for pkg in $(go list ./...); do
+            for target in $(go test -list '^Fuzz' "$pkg" | grep '^Fuzz' || true); do
+              echo "::group::$pkg $target"
+              go test -run='^$' -fuzz="^$target\$" -fuzztime=60s -fuzzminimizetime=10x "$pkg" || status=1
+              echo "::endgroup::"
+            done
+          done
+          exit $status
+
+  build:
+    name: release builds
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - { goos: windows, goarch: amd64, ext: .exe }
+          - { goos: windows, goarch: arm64, ext: .exe }
+          - { goos: linux, goarch: amd64, ext: "" }
+          - { goos: linux, goarch: arm64, ext: "" }
+          - { goos: darwin, goarch: amd64, ext: "" }
+          - { goos: darwin, goarch: arm64, ext: "" }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Build
+        env:
+          GOOS: ${{ matrix.target.goos }}
+          GOARCH: ${{ matrix.target.goarch }}
+          CGO_ENABLED: "0"
+        # -trimpath keeps the build machine's paths out of the binary, which is
+        # the least a metadata remover can do.
+        run: go build -trimpath -ldflags="-s -w" -o "dist/hideme-${{ matrix.target.goos }}-${{ matrix.target.goarch }}${{ matrix.target.ext }}" ./cmd/hideme
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hideme-${{ matrix.target.goos }}-${{ matrix.target.goarch }}
+          path: dist/*

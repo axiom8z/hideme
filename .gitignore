@@ -1,0 +1,24 @@
+# Build output
+/hideme
+/hideme.exe
+/dist/
+
+# Go test and fuzz artefacts
+*.test
+*.out
+*.prof
+
+# Never commit real files that may contain personal metadata
+/samples/
+*.clean.*
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Sweep harness: samples, scratch files and raw results (the table is in docs/SWEEP.md)
+/tools/sweep/work/
+/tools/sweep/venv/
+__pycache__/

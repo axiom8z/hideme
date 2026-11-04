@@ -1,0 +1,2 @@
+go test fuzz v1
+[]byte("%PDF-0 0 obj<</Type/Catalog/Pages 2 0 R>>2 0 obj<</Resources 21 0 R>>21 0 obj<</Subtype/Image/F[/DCT]>>stream\xff\xd8\xff\xe1\x00\x1f000000000000000000000000000\xff\xd9\nendstream")

@@ -1,0 +1,2 @@
+go test fuzz v1
+[]byte("%PDF-0 0 obj <</Type /Catalog /Pages 2 0 R >>2 0 obj <</Resources 20 0 R>>20 0 obj <</Filter /DCT>> stream\n\xff\xd8\xff\xe1\x00\x02\xff\xe1\xff\xd9endstream0")
