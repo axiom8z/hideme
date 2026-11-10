@@ -2,9 +2,11 @@ package main
 
 const exitCodesHelp = `Exit codes:
   0  every file was processed and, for clean, written and verified
-  1  at least one file failed; its original is untouched and no output was left
+  1  at least one file failed; its original is untouched and no output was left.
+     A file named on the command line that HideMe does not support has failed
   2  the command line was wrong; nothing was done
-  3  finished, but some files were unsupported or skipped, so they were not cleaned
+  3  finished, but some files found by -r were unsupported or skipped, so they
+     were not cleaned
 `
 
 const usageMain = `hideme removes privacy-sensitive metadata from files, without re-encoding them.
@@ -57,8 +59,10 @@ Flags may come before or after paths. A path starting with "-" goes after "--".
   --json         print one JSON document; see "hideme help json"
   --strict       also remove orientation and ICC colour profiles, which are otherwise
                  kept because removing them visibly changes the picture
-  -r             walk directories; symbolic links, special files and earlier outputs
-                 are skipped, and those and any unsupported files are listed
+  -r             walk directories; symbolic links, special files, temporary files left
+                 by an interrupted run, and earlier outputs are skipped, and those and
+                 any unsupported files are listed. An earlier output is a file whose
+                 name carries this run's suffix, or anything in the -o directory
   --jobs N       process N files at once (default: the CPU count, at most 8)
   -o DIR         write beneath DIR with the original names: a file goes in DIR, and a
                  walked directory in DIR/NAME with its structure kept

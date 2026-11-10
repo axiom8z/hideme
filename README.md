@@ -8,19 +8,22 @@ It is one static binary written in Go, using only the standard library.
 
 ```console
 $ hideme inspect photo.jpg
-photo.jpg: jpeg, 2822 bytes, 6 to remove, 1 retained
+photo.jpg: jpeg, 2133 bytes, 7 to remove, 1 retained
   high   Artist: Test Author (at APP1/Exif/IFD0)
   high   GPS coordinates: 48.858400, 2.294500 (at APP1/Exif/GPS)
   medium Camera make: Test Camera Co (at APP1/Exif/IFD0)
   medium Camera model: Test Phone 15 (at APP1/Exif/IFD0)
+  medium Other GPS tags: 1 tag (at APP1/Exif)
   medium Comment: secret comment (at COM)
   low    Software: TestEditor 9.1 (at APP1/Exif/IFD0)
   kept   Orientation: 6 (rotated 90 degrees clockwise) (at APP1/Exif/IFD0) [needed to display the image the right way up; strict mode removes it]
+Summary: files: 1, inspected: 1, failed: 0, unsupported: 0, skipped: 0, warnings: 0, bytes: 2133, time: 1ms
 
 $ hideme clean photo.jpg
-photo.jpg -> photo.clean.jpg: cleaned, jpeg, 6 removed, 1 retained, 2822 -> 2584 bytes, 3ms
-  removed: Artist, GPS coordinates, Camera make, Camera model, Comment, Software
+photo.jpg -> photo.clean.jpg: cleaned, jpeg, 7 removed, 1 retained, 2133 -> 1883 bytes, 3ms
+  removed: Artist, GPS coordinates, Camera make, Camera model, Other GPS tags, Comment, Software
   retained: Orientation
+Summary: files: 1, cleaned: 1, failed: 0, unsupported: 0, skipped: 0, warnings: 0, bytes: 2133 -> 1883, time: 4ms
 ```
 
 ## Supported formats
@@ -56,9 +59,9 @@ $ hideme inspect --json photo.jpg          # one JSON document, for scripts
 | Exit code | Meaning |
 |---|---|
 | 0 | Every file was processed and, for `clean`, written and verified |
-| 1 | At least one file failed; its original is untouched and no output was left |
+| 1 | At least one file failed; its original is untouched and no output was left. A file named on the command line that HideMe does not support counts as failed |
 | 2 | The command line was wrong; nothing was done |
-| 3 | Finished, but some files were unsupported or skipped, so they were not cleaned |
+| 3 | Finished, but some files that `-r` found were unsupported or skipped, so they were not cleaned |
 
 ## How it stays trustworthy
 
