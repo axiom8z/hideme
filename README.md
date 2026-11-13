@@ -77,9 +77,10 @@ clean.** Some things stay in an output with a warning instead, so read the warni
   visible text can legitimately contain a signature, a raw-byte hit only warns, and parts HideMe
   cannot read, such as embedded files no handler recognises and PDF streams in filters it does not
   decode, stay in the output with a warning.
-- **Originals are safe.** Nothing is overwritten without `--in-place`, and that replaces the file
-  atomically. `--in-place` also refuses a file whose cleaned copy might lack content, such as a
-  motion photo losing its video, unless you add `--force`.
+- **Originals are safe.** An original is replaced only with `--in-place`, and that replaces the file
+  atomically. An output file that already exists is replaced only with `--force`. `--in-place` also
+  refuses a file whose cleaned copy might lack content, such as a motion photo losing its video,
+  unless you add `--force`.
 - **Input is treated as hostile.** Offsets and lengths are bounds-checked, recursion and
   decompression are capped, and metadata printed to the terminal is stripped of escape sequences
   so a file cannot rewrite your screen.

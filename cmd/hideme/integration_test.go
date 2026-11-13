@@ -982,3 +982,33 @@ func resultWithEveryField(evil string) engine.Result {
 func summaryOf(engine.Result) engine.Summary {
 	return engine.Summary{Files: 1, Cleaned: 1, Warnings: 1}
 }
+
+// TestLegacyWordIsRefused pins the README's claim that legacy .doc files are not
+// supported: an OLE compound file (the Word 97-2003 container) named on the command
+// line is a failure, and nothing is written.
+func TestLegacyWordIsRefused(t *testing.T) {
+	dir := t.TempDir()
+	cfb := append([]byte{0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1}, make([]byte, 512)...)
+	src := put(t, filepath.Join(dir, "old.doc"), cfb)
+
+	for _, command := range []string{"inspect", "clean"} {
+		out := hideme(t, command, src)
+		if out.code != exitFailed {
+			t.Errorf("%s: exit %d, want %d\n%s", command, out.code, exitFailed, out.stdout)
+		}
+		doc := parseJSON(t, hideme(t, command, "--json", src).stdout)
+		if len(doc.Results) != 1 || doc.Results[0].Status != "failed" || doc.Results[0].ErrorKind != "unsupported" {
+			t.Errorf("%s: document: %+v", command, doc)
+		}
+	}
+	if !bytes.Equal(get(t, src), cfb) {
+		t.Error("the original changed")
+	}
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(entries) != 1 {
+		t.Errorf("a refused file left output behind: %v", entries)
+	}
+}
