@@ -98,7 +98,7 @@ func DefaultJobs() int { return min(runtime.NumCPU(), 8) }
 // rather than something that fails file by file.
 func (c Config) Validate(op Op) error {
 	if c.Jobs < 0 {
-		return fmt.Errorf("jobs must not be negative, got %d", c.Jobs)
+		return fmt.Errorf("--jobs must not be negative (0 means the default), got %d", c.Jobs)
 	}
 	if op == OpInspect {
 		return nil

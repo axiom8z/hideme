@@ -383,7 +383,7 @@ func TestUsageErrors(t *testing.T) {
 		{"standard input after --", []string{"clean", "--", "-"}, "standard input"},
 		{"flag missing its value", []string{"clean", src, "-o"}, "needs an argument"},
 		{"jobs not a number", []string{"clean", "--jobs", "many", src}, "jobs"},
-		{"negative jobs", []string{"clean", "--jobs", "-2", src}, "jobs"},
+		{"negative jobs", []string{"clean", "--jobs", "-2", src}, "--jobs must not be negative (0 means the default), got -2"},
 		{"bad timestamp", []string{"clean", "--timestamp", "yesterday", src}, "yesterday"},
 		{"in-place and output dir", []string{"clean", "--in-place", "-o", dir, src}, "cannot be combined"},
 		{"in-place and random name", []string{"clean", "--in-place", "--random-name", src}, "cannot be combined"},
@@ -410,6 +410,29 @@ func TestUsageErrors(t *testing.T) {
 	}
 	if !bytes.Equal(get(t, src), samples.PNG().Data) {
 		t.Error("a usage error changed the file")
+	}
+}
+
+func TestJobsZeroMeansTheDefault(t *testing.T) {
+	for _, command := range []string{"clean", "inspect"} {
+		t.Run(command, func(t *testing.T) {
+			src := put(t, filepath.Join(t.TempDir(), "a.jpg"), samples.JPEG().Data)
+			out := hideme(t, command, "--jobs", "0", src)
+			if out.code != exitOK {
+				t.Errorf("exit %d, want %d:\n%s", out.code, exitOK, out.stderr)
+			}
+		})
+	}
+}
+
+func TestNegativeJobsMessageOnInspect(t *testing.T) {
+	src := put(t, filepath.Join(t.TempDir(), "a.jpg"), samples.JPEG().Data)
+	out := hideme(t, "inspect", "--jobs", "-1", src)
+	if out.code != exitUsage {
+		t.Errorf("exit %d, want %d", out.code, exitUsage)
+	}
+	if want := "--jobs must not be negative (0 means the default), got -1"; !strings.Contains(out.stderr, want) {
+		t.Errorf("stderr does not contain %q:\n%s", want, out.stderr)
 	}
 }
 

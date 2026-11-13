@@ -26,7 +26,7 @@ func runInspect(ctx context.Context, args []string, stdout, stderr io.Writer) in
 
 	paths, err := parseFlags(fs, args)
 	if err == nil {
-		err = checkPaths(paths, &cfg)
+		err = checkPaths(paths)
 	}
 	if done, code := finishParse(err, command, asJSON, usageInspect, stdout, stderr); done {
 		return code
@@ -57,7 +57,7 @@ func runClean(ctx context.Context, args []string, stdout, stderr io.Writer) int 
 
 	paths, err := parseFlags(fs, args)
 	if err == nil {
-		err = checkPaths(paths, &cfg)
+		err = checkPaths(paths)
 	}
 	if err == nil {
 		cfg.Timestamp, err = engine.ParseTimestamp(timestamp)
@@ -100,10 +100,7 @@ func checkOutputDirFlag(fs *flag.FlagSet, cfg engine.Config) error {
 	return err
 }
 
-func checkPaths(paths []string, cfg *engine.Config) error {
-	if cfg.Jobs < 0 {
-		return fmt.Errorf("--jobs must be at least 1, got %d", cfg.Jobs)
-	}
+func checkPaths(paths []string) error {
 	if len(paths) == 0 {
 		return errors.New("no paths given")
 	}
