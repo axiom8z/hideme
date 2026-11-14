@@ -11,23 +11,15 @@ import (
 )
 
 // A swap is only possible where an open file can be renamed over, which Windows forbids.
-// The replacement has the same size and modification time, so only the identity check
-// can tell it from the file that was read.
+// The size and time check reads the open file, which the rename leaves untouched, so only
+// the identity check against the path can catch the swap.
 func TestSourceSwappedDuringCleanIsRefused(t *testing.T) {
 	dir := t.TempDir()
 	const contents = "FAKEHOOKED\ncontent\n"
 	const other = "FAKEHOOKED\nOTHER!!\n"
 	src := write(t, filepath.Join(dir, "swapped.bin"), contents)
-	info, err := os.Stat(src)
-	if err != nil {
-		t.Fatal(err)
-	}
 	cleanHook = func(context.Context) error {
-		repl := write(t, filepath.Join(dir, "replacement"), other)
-		if err := os.Chtimes(repl, info.ModTime(), info.ModTime()); err != nil {
-			return err
-		}
-		return os.Rename(repl, src)
+		return os.Rename(write(t, filepath.Join(dir, "replacement"), other), src)
 	}
 	defer func() { cleanHook = nil }()
 
