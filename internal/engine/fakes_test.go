@@ -171,6 +171,15 @@ func init() {
 			inspect: silent("lossy"),
 		},
 		{
+			// Breaks the contract that a nil error comes with a report.
+			id: "nilreporter", magic: "FAKENILREPORT\n",
+			clean: func(_ context.Context, _ core.Source, dst io.Writer) (*core.Report, error) {
+				_, _ = io.WriteString(dst, "half a file")
+				return nil, nil
+			},
+			inspect: func(context.Context, core.Source) (*core.Report, error) { return nil, nil },
+		},
+		{
 			// Hands control to the test partway through writing.
 			id: "hooked", magic: "FAKEHOOKED\n",
 			clean: func(ctx context.Context, src core.Source, dst io.Writer) (*core.Report, error) {
