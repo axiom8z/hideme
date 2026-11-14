@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"runtime"
 	"strings"
 )
 
@@ -102,12 +103,17 @@ func publish(temp, output string, replace bool) error {
 
 // syncDir makes the rename itself durable, so that "--in-place" cannot appear to
 // succeed and then revert after a power cut. Directories cannot be synced on
-// Windows, where the file system journals renames anyway, so failure is ignored.
-func syncDir(dir string) {
+// Windows, where the file system journals renames anyway, so it does not try there.
+// Elsewhere a failure is returned for the caller to report; the rename has already
+// happened, so it is never a reason to fail the file.
+func syncDir(dir string) error {
+	if runtime.GOOS == "windows" {
+		return nil
+	}
 	d, err := os.Open(dir)
 	if err != nil {
-		return
+		return err
 	}
 	defer d.Close()
-	_ = d.Sync()
+	return d.Sync()
 }

@@ -145,6 +145,8 @@ The engine owns everything that is not format-specific.
   Windows it has its folder's permissions until it is finished. Temp files are
   removed on any failure, including Ctrl-C. Only killing the process outright can
   leave one, and a later walk reports it as skipped.
+  After the rename the output folder is synced so the change survives a power cut;
+  a failed sync is a warning, not a failure, and Windows skips it.
 - **Permissions.** The output gets the source's mode bits. On Windows it also gets
   any permissions the source has beyond what its folder hands down, so a private
   file stays private. If that fails, a warning says to check who can read it.

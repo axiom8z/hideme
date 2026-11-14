@@ -221,7 +221,9 @@ func (w worker) clean(ctx context.Context, t task, res *Result) error {
 		return err
 	}
 	out.published = true
-	syncDir(filepath.Dir(t.output))
+	if err := syncDir(filepath.Dir(t.output)); err != nil {
+		res.Warnings = append(res.Warnings, core.SafeText("the output is clean, but its folder could not be synced, so the change may not survive a power cut: "+describe(err)))
+	}
 	if err := times.applyAfterPublish(t.output); err != nil {
 		res.Warnings = append(res.Warnings, core.SafeText("the output is clean, but its creation time could not be set: "+describe(err)))
 	}
