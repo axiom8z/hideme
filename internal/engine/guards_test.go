@@ -1,47 +1,11 @@
 package engine
 
 import (
-	"context"
 	"errors"
-	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 )
-
-func TestSourceChangedDuringCleanLeavesNoOutputAndNoTemp(t *testing.T) {
-	dir := t.TempDir()
-	const contents = "FAKEHOOKED\ncontent\n"
-	src := write(t, filepath.Join(dir, "moving.bin"), contents)
-	const added = "another program saved this\n"
-	cleanHook = func(context.Context) error {
-		f, err := os.OpenFile(src, os.O_APPEND|os.O_WRONLY, 0)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-		_, err = f.WriteString(added)
-		return err
-	}
-	defer func() { cleanHook = nil }()
-
-	r := Clean(context.Background(), src, Config{InPlace: true})
-
-	if r.Status != StatusFailed || r.Kind != KindInvalidInput {
-		t.Fatalf("status %q kind %q: %s", r.Status, r.Kind, r.Reason)
-	}
-	if !strings.Contains(r.Reason, "the file changed while it was being cleaned") {
-		t.Errorf("reason %q does not name the guard", r.Reason)
-	}
-	if got := read(t, src); got != contents+added {
-		t.Errorf("the other program's save was lost: %q", got)
-	}
-	entries, err := os.ReadDir(dir)
-	if err != nil || len(entries) != 1 {
-		t.Errorf("directory holds %v (err %v), want only the source", entries, err)
-	}
-	assertNoTemp(t, dir)
-}
 
 func TestHandlerReturningNoReportIsAPerFileFailure(t *testing.T) {
 	const want = "the handler returned no report"

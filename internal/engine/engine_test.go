@@ -255,9 +255,16 @@ func TestSourceChangingDuringCleanIsRefused(t *testing.T) {
 	if r.Status != StatusFailed || r.Kind != KindInvalidInput {
 		t.Fatalf("status %q kind %q: %s", r.Status, r.Kind, r.Reason)
 	}
+	if !strings.Contains(r.Reason, "the file changed while it was being cleaned") {
+		t.Errorf("reason %q does not name the guard", r.Reason)
+	}
 	if got := read(t, src); got != contents+added {
 		t.Errorf("--in-place lost what the other program saved: %q", got)
 	}
+	if entries, err := os.ReadDir(dir); err != nil || len(entries) != 1 {
+		t.Errorf("directory holds %v (err %v), want only the source", entries, err)
+	}
+	assertNoTemp(t, dir)
 }
 
 func TestExistingOutputIsNotOverwrittenWithoutForce(t *testing.T) {
