@@ -12,17 +12,22 @@ import (
 	"github.com/axiom8z/hideme/internal/engine"
 )
 
+// registerSharedFlags registers the flags that inspect and clean take alike.
+func registerSharedFlags(fs *flag.FlagSet, cfg *engine.Config, useJSON *bool) {
+	fs.BoolVar(useJSON, "json", false, "")
+	fs.BoolVar(&cfg.Strict, "strict", false, "")
+	fs.BoolVar(&cfg.Recursive, "r", false, "")
+	fs.IntVar(&cfg.Jobs, "jobs", 0, "")
+}
+
 func runInspect(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 	const command = "inspect"
 	asJSON := wantsJSON(args)
 	fs := newFlagSet(command)
 	var cfg engine.Config
 	var useJSON, redact bool
-	fs.BoolVar(&useJSON, "json", false, "")
+	registerSharedFlags(fs, &cfg, &useJSON)
 	fs.BoolVar(&redact, "redact", false, "")
-	fs.BoolVar(&cfg.Strict, "strict", false, "")
-	fs.BoolVar(&cfg.Recursive, "r", false, "")
-	fs.IntVar(&cfg.Jobs, "jobs", 0, "")
 
 	paths, err := parseFlags(fs, args)
 	if err == nil {
@@ -42,10 +47,7 @@ func runClean(ctx context.Context, args []string, stdout, stderr io.Writer) int 
 	var cfg engine.Config
 	var useJSON, verbose bool
 	var suffix, timestamp string
-	fs.BoolVar(&useJSON, "json", false, "")
-	fs.BoolVar(&cfg.Strict, "strict", false, "")
-	fs.BoolVar(&cfg.Recursive, "r", false, "")
-	fs.IntVar(&cfg.Jobs, "jobs", 0, "")
+	registerSharedFlags(fs, &cfg, &useJSON)
 	fs.StringVar(&cfg.OutputDir, "o", "", "")
 	fs.BoolVar(&cfg.InPlace, "in-place", false, "")
 	fs.StringVar(&suffix, "suffix", "", "")
